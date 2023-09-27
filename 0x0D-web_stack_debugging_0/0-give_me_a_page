@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+# Fixes my server with these
+sudo service apache2 start
