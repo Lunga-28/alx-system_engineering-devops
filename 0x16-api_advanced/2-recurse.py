@@ -2,23 +2,18 @@
 """
 returns a list of all titles
 """
-import requests
+from requests import get
 
-def recurse(subreddit, hot_list=[], count=0, after=None):
-    url = 'https://www.reddit.com/r/{}/hot.json'.format(subreddit)
-    headers = {"User-Agent": "My-User-Agent"}
-    params = {"count": count, "after": after}
-
-    sub_info = requests.get(url, headers=headers, params=params,
-                            allow_redirects=False)
-    if sub_info.status_code >= 400:
+def recurse(subreddit, hot_list=[], after=None):
+    try:
+        url = 'https://www.reddit.com/r/{}/hot.json'.format(subreddit)
+        res = get(url, headers={'User-agent': 'hAxr'}, params={'after': after},
+                  allow_redirects=False).json()
+        after = res['data']['after']
+        for item in res['data']['children']:
+            hot_list.append(item['data']['title'])
+        if after is not None:
+            recurse(subreddit, hot_list, after)
+        return hot_list if len(hot_list) > 0 else None
+    except:
         return None
-
-    hot_lst = hot_list + [child.get('data').get('title') for child in
-                          sub_info.json().get('data').get('children')]
-    info = sub_info.json()
-    if not info.get('data').get('after'):
-        return hot_lst
-
-    return recurse(subreddit, hot_l, info.get('data').get('count'),
-                   info.get('data').get('after'))
